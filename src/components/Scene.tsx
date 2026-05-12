@@ -85,31 +85,126 @@ interface FloatingImageProps {
   rotation: number
 }
 
+const GLOW_COLORS = ["#a855f7", "#818cf8", "#60a5fa", "#f472b6", "#34d399", "#fbbf24"]
+
+function createCircleMask(): THREE.Texture {
+  const size = 256
+  const canvas = document.createElement("canvas")
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext("2d")!
+  const grad = ctx.createRadialGradient(size/2, size/2, size*0.35, size/2, size/2, size/2)
+  grad.addColorStop(0, "rgba(255,255,255,1)")
+  grad.addColorStop(0.85, "rgba(255,255,255,1)")
+  grad.addColorStop(1, "rgba(255,255,255,0)")
+  ctx.fillStyle = grad
+  ctx.beginPath()
+  ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2)
+  ctx.fill()
+  const tex = new THREE.CanvasTexture(canvas)
+  return tex
+}
+
+const circleMask = createCircleMask()
+
+function createGlowTexture(color: string): THREE.Texture {
+  const size = 256
+  const canvas = document.createElement("canvas")
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext("2d")!
+  const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2)
+  grad.addColorStop(0, color + "99")
+  grad.addColorStop(0.5, color + "33")
+  grad.addColorStop(1, "transparent")
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, size, size)
+  return new THREE.CanvasTexture(canvas)
+}
+
+const glowTextures = GLOW_COLORS.map(createGlowTexture)
+
 function FloatingImage({ texture, index, rotation }: FloatingImageProps) {
-  const meshRef = useRef<THREE.Mesh>(null)
+  const groupRef = useRef<THREE.Group>(null)
   const config = imagePositions[index]
+  const glowTex = glowTextures[index % glowTextures.length]
 
   useFrame((state) => {
-    if (!meshRef.current) return
-
+    if (!groupRef.current) return
     const targetRotY = config.rot[1] + rotation
-    meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, targetRotY, 0.12)
-
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetRotY, 0.12)
     const time = state.clock.getElapsedTime()
-    meshRef.current.position.y = config.pos[1] + Math.sin(time * 0.5 + index) * 0.1
+    groupRef.current.position.y = config.pos[1] + Math.sin(time * 0.5 + index) * 0.1
+  })
+
+  const r = 0.5
+
+  return (
+    <group ref={groupRef} position={config.pos} rotation={config.rot} scale={config.scale}>
+      {/* Glow halo */}
+      <mesh position={[0, 0, -0.01]}>
+        <circleGeometry args={[r * 1.7, 64]} />
+        <meshBasicMaterial map={glowTex} transparent opacity={0.7} depthWrite={false} />
+      </mesh>
+      {/* Photo circle */}
+      <mesh>
+        <circleGeometry args={[r, 64]} />
+        <meshStandardMaterial
+          map={texture}
+          alphaMap={circleMask}
+          transparent
+          opacity={0.95}
+          side={THREE.DoubleSide}
+          roughness={0.2}
+          metalness={0.1}
+        />
+      </mesh>
+    </group>
+  )
+}
+
+function Stars({ count = 500, depth = 15, size = 0.015, bright = false }: { count?: number; depth?: number; size?: number; bright?: boolean }) {
+  const points = useRef<THREE.Points>(null)
+  const geo = new THREE.BufferGeometry()
+  const positions = new Float32Array(count * 3)
+  const colors = new Float32Array(count * 3)
+  for (let i = 0; i < count; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 60
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 40
+    positions[i * 3 + 2] = -Math.random() * depth - 3
+    const c = bright
+      ? new THREE.Color().setHSL(Math.random() * 0.3 + 0.6, 0.8, 0.9)
+      : new THREE.Color(1, 1, 1)
+    colors[i * 3] = c.r
+    colors[i * 3 + 1] = c.g
+    colors[i * 3 + 2] = c.b
+  }
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3))
+
+  useFrame((state) => {
+    if (!points.current) return
+    points.current.rotation.y = state.clock.getElapsedTime() * 0.008
   })
 
   return (
-    <mesh ref={meshRef} position={config.pos} rotation={config.rot} scale={config.scale}>
-      <planeGeometry args={[0.833, 1.2]} />
-      <meshStandardMaterial
-        map={texture}
-        transparent
-        opacity={0.95}
-        side={THREE.DoubleSide}
-        roughness={0.3}
-        metalness={0.1}
-      />
+    <points ref={points} geometry={geo}>
+      <pointsMaterial size={size} vertexColors transparent opacity={0.9} sizeAttenuation />
+    </points>
+  )
+}
+
+function NebulaSpot({ position, color, size }: { position: [number, number, number]; color: string; size: number }) {
+  const mesh = useRef<THREE.Mesh>(null)
+  useFrame((state) => {
+    if (!mesh.current) return
+    const mat = mesh.current.material as THREE.MeshBasicMaterial
+    mat.opacity = 0.12 + Math.sin(state.clock.getElapsedTime() * 0.4) * 0.04
+  })
+  return (
+    <mesh ref={mesh} position={position}>
+      <circleGeometry args={[size, 32]} />
+      <meshBasicMaterial color={color} transparent opacity={0.14} depthWrite={false} />
     </mesh>
   )
 }
@@ -281,21 +376,31 @@ export default function Scene() {
 
   return (
     <>
-      {/* Ambient lighting */}
-      <ambientLight intensity={0.4} />
-      <pointLight position={[10, 10, 10]} intensity={0.6} />
-      <pointLight position={[-10, -10, -5]} intensity={0.4} color="#ff6b35" />
-      <spotLight position={[0, 5, 5]} intensity={0.3} angle={0.6} penumbra={1} />
+      {/* Cosmic background */}
+      <mesh position={[0, 0, -20]}>
+        <planeGeometry args={[120, 80]} />
+        <meshBasicMaterial color="#03001e" />
+      </mesh>
+
+      {/* Stars layer 1 — small distant */}
+      <Stars count={1200} depth={18} size={0.012} />
+      {/* Stars layer 2 — bigger near */}
+      <Stars count={300} depth={8} size={0.025} bright />
+
+      {/* Nebula glow spots */}
+      <NebulaSpot position={[-8, 3, -15]} color="#4c1d95" size={12} />
+      <NebulaSpot position={[6, -2, -14]} color="#1e1b4b" size={10} />
+      <NebulaSpot position={[0, 5, -16]} color="#701a75" size={8} />
+
+      {/* Lighting */}
+      <ambientLight intensity={0.5} />
+      <pointLight position={[0, 0, 5]} intensity={0.8} color="#c084fc" />
+      <pointLight position={[-10, 5, -5]} intensity={0.4} color="#818cf8" />
+      <pointLight position={[10, -5, -5]} intensity={0.3} color="#f472b6" />
 
       {textures.map((texture, index) => (
         <FloatingImage key={index} texture={texture} index={index} rotation={rotation} />
       ))}
-
-      {/* Reflection plane */}
-      <mesh position={[0, -2.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[30, 30]} />
-        <meshStandardMaterial color="#0a0a0a" transparent opacity={0.2} roughness={0.1} metalness={0.9} />
-      </mesh>
     </>
   )
 }
