@@ -1,7 +1,43 @@
 import { useRef, useState, useEffect } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
-import { useTexture } from "@react-three/drei"
 import * as THREE from "three"
+
+function createFallbackTexture(color = "#6b21a8"): THREE.Texture {
+  const canvas = document.createElement("canvas")
+  canvas.width = 128
+  canvas.height = 128
+  const ctx = canvas.getContext("2d")!
+  const grad = ctx.createLinearGradient(0, 0, 128, 128)
+  grad.addColorStop(0, color)
+  grad.addColorStop(1, "#1e1b4b")
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, 128, 128)
+  ctx.fillStyle = "rgba(255,255,255,0.15)"
+  ctx.font = "32px serif"
+  ctx.textAlign = "center"
+  ctx.fillText("✨", 64, 72)
+  return new THREE.CanvasTexture(canvas)
+}
+
+function useTexturesSafe(urls: string[]): THREE.Texture[] {
+  const uniqueUrls = [...new Set(urls)]
+  const [textureMap, setTextureMap] = useState<Record<string, THREE.Texture>>({})
+
+  useEffect(() => {
+    const loader = new THREE.TextureLoader()
+    const fallback = createFallbackTexture()
+    uniqueUrls.forEach((url) => {
+      loader.load(
+        url,
+        (tex) => setTextureMap((prev) => ({ ...prev, [url]: tex })),
+        undefined,
+        () => setTextureMap((prev) => ({ ...prev, [url]: fallback }))
+      )
+    })
+  }, [])
+
+  return urls.map((url) => textureMap[url] ?? createFallbackTexture())
+}
 
 const BASE_IMAGES = [
   "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/9fe6d16a-a501-4519-8cd6-23cd56517d1a.jpg",
@@ -89,7 +125,7 @@ export default function Scene() {
   const dragStart = useRef({ x: 0, y: 0 })
   const dragRotation = useRef(0)
 
-  const textures = useTexture(images)
+  const textures = useTexturesSafe(images)
 
   // Mouse parallax effect
   useEffect(() => {
