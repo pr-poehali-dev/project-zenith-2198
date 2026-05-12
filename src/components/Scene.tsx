@@ -3,43 +3,45 @@ import { useFrame, useThree } from "@react-three/fiber"
 import { useTexture } from "@react-three/drei"
 import * as THREE from "three"
 
-const images = [
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%281%29-KqS753y9z7eEkZKIh0rzbgD3jJjMCl.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%284%29-GDfu68kc6bpcQiAUe7C5xMIJmnXCDm.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2810%29-OrLucPOAahIph0YnVgVuGUnsPTaNx8.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%282%29-rd1lKJeWsJYrLCZ17qTQLNZkRimW75.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%288%29-JyAOFn1dBSpZSlD8nANRaq4hk568jg.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%283%29-6VLx3zL2hBDFGSxS4PT00r5a1Mvzgi.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2815%29-WfPVVoZCDiLzMEXhHsDMlLYpZnZowN.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2818%29-Btt8C4BM3F1RXnCwD8WyrscyQQeKWR.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2813%29-X6FjDEWxC3gOkMLPxS2UJxksXtcq6j.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2817%29-y3fTE1IgoWebjYSuTTnt0zsgeyEt6I.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2823%29-A5m4nKEHgoh0oNyb6jLQaU0Ye50cvA.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2811%29-Y6InBk3wTZFovUr6jnnZWaPQgWfl6k.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2814%29-SCCwpaEfvTRrvqlTWqp1MFs5MIBpuV.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2812%29-7WvqhUk9iih5UFMt305jeX9EfTDRGd.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2819%29-sPRqu4ZKsZXybhLs7ecdEYAzTXy6t5.jpg",
-  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Motion%20Blur%20Photography%20%2820%29-AYYzJPYYfPbM6vSYJGhyWBLNTjdPIx.jpg",
+const BASE_IMAGES = [
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/9fe6d16a-a501-4519-8cd6-23cd56517d1a.jpg",
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/853973af-7957-44bf-b988-606f06538c4a.jpg",
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/1c20393a-c43b-4e4f-bc55-3b90bc8002eb.jpg",
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/b7d99ddf-1070-4c15-8dee-b6cdde211367.jpg",
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/d5e0dcd7-4cac-4623-b269-5ff6cb567b9e.jpg",
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/781a78b0-d680-4f2a-bc2d-aa14709b1ef7.jpg",
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/bf08a836-7b0b-4a49-bc82-6198d4ede4e7.jpg",
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/cebc4532-be49-4cb9-be40-b8a647a63ac3.jpg",
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/1a8f8490-05de-4fbf-8689-9f7209c8f5a7.jpg",
+  "https://cdn.poehali.dev/projects/564f53ff-4101-4c65-84f1-58368d479bbf/files/10b21b9e-fa61-4247-8a97-1a25677cdfba.jpg",
 ]
 
-const imagePositions = [
-  { pos: [-3.2, 1.8, -2.5] as [number, number, number], rot: [0, 0.4, 0] as [number, number, number], scale: 0.7 },
-  { pos: [2.8, -1.2, -3] as [number, number, number], rot: [0, -0.5, 0] as [number, number, number], scale: 0.8 },
-  { pos: [-1.5, 2.5, -1.8] as [number, number, number], rot: [0, 0.3, 0] as [number, number, number], scale: 0.65 },
-  { pos: [3.5, 0.8, -2.2] as [number, number, number], rot: [0, -0.4, 0] as [number, number, number], scale: 0.75 },
-  { pos: [-2.8, -2.1, -2.8] as [number, number, number], rot: [0, 0.5, 0] as [number, number, number], scale: 0.7 },
-  { pos: [1.2, 2.2, -2.5] as [number, number, number], rot: [0, -0.3, 0] as [number, number, number], scale: 0.8 },
-  { pos: [-3.5, 0.5, -2] as [number, number, number], rot: [0, 0.6, 0] as [number, number, number], scale: 0.65 },
-  { pos: [2.2, -2.5, -2.6] as [number, number, number], rot: [0, -0.4, 0] as [number, number, number], scale: 0.75 },
-  { pos: [-1.8, -0.8, -3.2] as [number, number, number], rot: [0, 0.3, 0] as [number, number, number], scale: 0.7 },
-  { pos: [3.2, 1.5, -1.9] as [number, number, number], rot: [0, -0.5, 0] as [number, number, number], scale: 0.8 },
-  { pos: [-2.5, 2.8, -2.4] as [number, number, number], rot: [0, 0.4, 0] as [number, number, number], scale: 0.65 },
-  { pos: [0.8, -1.8, -2.7] as [number, number, number], rot: [0, -0.3, 0] as [number, number, number], scale: 0.75 },
-  { pos: [-3.8, -1.5, -2.3] as [number, number, number], rot: [0, 0.5, 0] as [number, number, number], scale: 0.7 },
-  { pos: [2.5, 2.8, -2.9] as [number, number, number], rot: [0, -0.4, 0] as [number, number, number], scale: 0.8 },
-  { pos: [-0.8, -2.8, -2.1] as [number, number, number], rot: [0, 0.3, 0] as [number, number, number], scale: 0.65 },
-  { pos: [3.8, -0.5, -2.5] as [number, number, number], rot: [0, -0.5, 0] as [number, number, number], scale: 0.75 },
-]
+const TOTAL = 100
+
+function seededRandom(seed: number) {
+  const x = Math.sin(seed + 1) * 10000
+  return x - Math.floor(x)
+}
+
+const images = Array.from({ length: TOTAL }, (_, i) => BASE_IMAGES[i % BASE_IMAGES.length])
+
+const imagePositions = Array.from({ length: TOTAL }, (_, i) => {
+  const layer = Math.floor(i / 10)
+  const radius = 3.5 + layer * 1.8
+  const baseAngle = (i % 10) * (Math.PI * 2 / 10)
+  const yVariance = (seededRandom(i * 3) - 0.5) * 5
+  const xOffset = (seededRandom(i * 7) - 0.5) * 1.2
+  const zDepth = -(2 + seededRandom(i * 11) * 2.5)
+  const x = Math.cos(baseAngle) * radius + xOffset
+  const z = Math.sin(baseAngle) * radius * 0.4 + zDepth
+  const rotY = (seededRandom(i * 5) - 0.5) * 0.8
+  const scale = 0.55 + seededRandom(i * 13) * 0.35
+  return {
+    pos: [x, yVariance, z] as [number, number, number],
+    rot: [0, rotY, 0] as [number, number, number],
+    scale,
+  }
+})
 
 interface FloatingImageProps {
   texture: THREE.Texture
