@@ -24,18 +24,34 @@ export default function LoadingScreen() {
     >
       <div className="text-center">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
-          className="font-serif text-4xl mb-4"
+          className="text-5xl mb-4"
         >
-          Загрузка
+          ✨
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="font-serif text-3xl text-white mb-2"
+        >
+          Загадай.Онлайн
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="text-white/40 text-sm mb-5"
+        >
+          Галерея мечт загружается…
         </motion.div>
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 1.5, ease: "easeInOut" }}
-          className="h-[2px] w-48 mx-auto bg-accent origin-left"
+          transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
+          className="h-[2px] w-48 mx-auto bg-gradient-to-r from-purple-600 to-indigo-400 origin-left"
         />
       </div>
     </motion.div>
